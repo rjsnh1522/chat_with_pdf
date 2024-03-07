@@ -1,13 +1,14 @@
+import os
 import streamlit as st
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.embeddings import HuggingFaceInstructEmbeddings
-from langchain_community.vectorstores.faiss import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplate import css, bot_template, user_template
+from ingest import FileIngester
 
 
 def get_pdf_text(pdf_docs):
@@ -57,6 +58,19 @@ def handle_userinput(user_question):
     st.write(response)
 
 
+def save_uploadedfile(uploadedfiles):
+    try:
+        source_directory = os.getenv('SOURCE_DIRECTORY', 'source_documents')
+        for uploadedfile in uploadedfiles:
+            with open(os.path.join(source_directory, uploadedfile.name),"wb") as f:
+                f.write(uploadedfile.getbuffer())
+                st.success("File saved".format(uploadedfile.name))
+        return True
+    except Exception as e:
+        return False
+
+
+
 def main():
     load_dotenv()
     st.set_page_config(page_title="Chat with multiple pdfs", page_icon=":books:")
@@ -76,20 +90,29 @@ def main():
 
     with st.sidebar:
         st.subheader("Your Documents")
-        pdf_docs = st.file_uploader(
+        docs = st.file_uploader(
             "Upload your pdfs here and click upload",
-            accept_multiple_files=True
+            accept_multiple_files=True,
+            type=["doc", "pdf", "epub", "txt", "odt"]
         )
         if st.button("process"):
             with st.spinner("processing"):
 
-                raw_text = get_pdf_text(pdf_docs)
+                if docs is not None:
+                    is_saved = save_uploadedfile(docs)
+                    if is_saved:
+                        st.success("Please wait.... we are proccessing the files")
+                        file_ingester = FileIngester(streamlit=st)
+                        file_ingester.ingest()
 
-                text_chunks = get_text_chunks(raw_text)
 
-                vectorstore = get_vectorstore(text_chunks)
+                # raw_text = get_pdf_text(pdf_docs)
 
-                st.session_state.conversation = get_conversation_chain(vectorstore)
+                # text_chunks = get_text_chunks(raw_text)
+
+                # vectorstore = get_vectorstore(text_chunks)
+
+                # st.session_state.conversation = get_conversation_chain(vectorstore)
 
 
 
