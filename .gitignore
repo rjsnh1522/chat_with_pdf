@@ -377,3 +377,4 @@ pyrightconfig.json
 
 db/*
 source_documents/*
+__pycache__

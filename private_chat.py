@@ -19,7 +19,7 @@ class ChatResponse:
         # For embeddings model, the example uses a sentence-transformers model
         # https://www.sbert.net/docs/pretrained_models.html 
         # "The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality."
-        self.embeddings_model_name = os.getenv("EMBEDDINGS_MODEL_NAME", "all-MiniLM-L6-v2")
+        self.embeddings_model_name = os.getenv("EMBEDDINGS_MODEL_NAME", "hkunlp/instructor-xl")
         self.persist_directory = os.getenv("PERSIST_DIRECTORY", "db")
         self.target_source_chunks = int(os.getenv('TARGET_SOURCE_CHUNKS',4))
     
@@ -45,9 +45,13 @@ class ChatResponse:
         # Get the answer from the chain
         start = time.time()
         res = qa(user_question)
+        print("****************************")
         answer = res['result']
+        print("****************************")
         end = time.time()
 
+        time_taken = end - start
+        print(f"Time taken to answer is : {time_taken}")
         # Print the result
         print("\n\n> Question:")
         print(user_question)

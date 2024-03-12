@@ -80,11 +80,26 @@ class FileIngester():
             # Add more mappings for other file extensions and loaders as needed
         }
         return LOADER_MAPPING
+    
+    def remove_files_from_source_directory(self):
+        try:
+            # Iterate over all files in the folder
+            for filename in os.listdir(self.source_directory):
+                file_path = os.path.join(self.source_directory, filename)
+
+                # Check if the file is a regular file
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    print(f"Deleted: {file_path}")
+
+            print(f"All files in {self.source_directory} have been deleted.")
+        except Exception as e:
+            print(f"Error: {e}")
 
     def ingest(self):
          # Create embeddings
         self.streamlit.success("Injesting the file provided")
-        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        embeddings = HuggingFaceEmbeddings(model_name=self.embeddings_model_name)
         self.streamlit.success("****Doing embedding *****")
         if self.does_vectorstore_exist(self.persist_directory):
             self.streamlit.success("Db exists")
@@ -109,6 +124,7 @@ class FileIngester():
 
         print(f"Ingestion complete! You can now run privateGPT.py to query your documents")
         self.streamlit.success("Ingestion complete! You can now run privateGPT.py to query your documents")
+        self.remove_files_from_source_directory()
     
 
     def load_single_document(self, file_path: str) -> List[Document]:
